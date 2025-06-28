@@ -1,0 +1,5 @@
+if(EXISTS "/Users/akhileshmishra/CLionProjects/AkhilProject/cmake-build-relwithdebinfo/unit/sanitizers/ubsan/unittest_ubsan[1]_tests.cmake")
+  include("/Users/akhileshmishra/CLionProjects/AkhilProject/cmake-build-relwithdebinfo/unit/sanitizers/ubsan/unittest_ubsan[1]_tests.cmake")
+else()
+  add_test(unittest_ubsan_NOT_BUILT unittest_ubsan_NOT_BUILT)
+endif()

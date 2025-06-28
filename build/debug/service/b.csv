@@ -1,0 +1,37 @@
+2024-12-21T15:33:12+00:00
+Running /Users/akhileshmishra/CLionProjects/AkhilProject/build/debug/service/tester
+Run on (16 X 2300 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB
+  L1 Instruction 32 KiB
+  L2 Unified 256 KiB (x8)
+  L3 Unified 16384 KiB
+Load Average: 6.50, 3.74, 2.86
+***WARNING*** Library was built as DEBUG. Timings may be affected.
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"testSpace::Test::testInplaceSPSCQueue/1",6958,134173,102589,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/2",6837,139233,102339,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/4",7123,145100,102030,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/8",6578,153289,100917,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/16",6566,165428,102276,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/32",6286,187126,103532,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/64",5991,235798,109339,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/128",5679,358219,128973,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/256",4565,529781,143124,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/512",3694,935781,181221,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/1024",2363,1.85842e+06,269532,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/2048",1000,3.11266e+06,357794,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/4096",1193,6.15169e+06,589816,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/8192",649,1.23805e+07,1.08063e+06,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/16384",343,2.37367e+07,1.97982e+06,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/32768",100,4.62283e+07,3.966e+06,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/65536",92,9.89942e+07,8.12452e+06,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/131072",45,1.85119e+08,1.53498e+07,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/262144",10,3.68162e+08,3.07212e+07,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/524288",11,7.34256e+08,6.05684e+07,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/1048576",5,1.45997e+09,1.23475e+08,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/2097152",1,2.96955e+09,2.45011e+08,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/4194304",1,5.98611e+09,5.2197e+08,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/8388608",1,1.18653e+10,1.05738e+09,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/16777216",1,2.41356e+10,2.13343e+09,ns,,,,,
+"testSpace::Test::testInplaceSPSCQueue/33554432",1,5.39548e+10,4.61718e+09,ns,,,,,
