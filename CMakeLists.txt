@@ -3,6 +3,7 @@ project(akhil-project)
 
 set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -fsanitize=undefined -O3")
+set(BENCHMARK_DOWNLOAD_DEPENDENCIES, "ON")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(BENCHMARK_DOWNLOAD_DEPENDENCIES, "ON")
