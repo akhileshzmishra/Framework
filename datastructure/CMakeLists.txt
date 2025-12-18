@@ -3,10 +3,13 @@ add_library(
     GeneralDS.cpp
     MyFunction.h
     Mytuple.h
-        MyIntegerIndexer.h
-        MyTuplePacker.h
-        MyAny.h
-        AnyStorage.h
+    MyIntegerIndexer.h
+    MyTuplePacker.h
+    MyAny.h
+    AnyStorage.h
+    TrieMap.h
+    ZipView.h
+    DebugPrint.h
 )
 
 

@@ -13,6 +13,7 @@ class Any {
     };
     template <typename T>
     class Handler {
+        using AnyData = AnyData<16>;
         static const size_t MAX_ALIGN = alignof(T);
         static const size_t MAX_SIZE = sizeof(AnyData);
         using NativeType = std::remove_reference_t<T>;
@@ -83,8 +84,8 @@ class Any {
     template <typename T>
     using NativeType = std::remove_reference_t<T>;
 
-    AnyData d_data{};
-    void (*d_manager)(ManagerEnum, AnyData*, const AnyData*, AnyData*) = nullptr;
+    AnyData<16> d_data{};
+    void (*d_manager) (ManagerEnum, AnyData<16>*, const AnyData<16>*, AnyData<16>*) = nullptr;
     bool d_local = false;
 public:
     Any() = default;
@@ -96,7 +97,7 @@ public:
     }
 
     template <typename T>
-    requires (!std::is_same_v<std::remove_reference_t<std::remove_cv_t<T>>, AnyData>)
+        requires (!std::is_same_v<std::remove_reference_t<std::remove_cv_t<T>>, AnyData<16>>)
     explicit Any (T&& rhs) {
         Handler<NativeType<T>>::create(&d_data, std::forward<T>(rhs));
         d_manager = &Handler<NativeType<T>>::manager;

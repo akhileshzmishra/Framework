@@ -18,14 +18,6 @@ namespace inplace{
             std::cout << std::endl;
         }
     };
-
-template <>
-class InplaceOstream<false>{
-    public:
-    template<class... Args>
-    static void print(Args... args){;
-    }
-};
 };
 
 #endif //INPLACEOSTREAM_HPP

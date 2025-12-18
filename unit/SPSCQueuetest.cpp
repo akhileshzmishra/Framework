@@ -1,7 +1,3 @@
-//
-// Created by Akhilesh Mishra on 21/12/2024.
-//
-
 #include <gtest/gtest.h>
 #include "SPSCQueue.hpp"
 #include <memory>

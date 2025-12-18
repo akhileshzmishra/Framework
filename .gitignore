@@ -1,0 +1,6 @@
+cmake-build-relwithdebinfo
+build
+**/CMakeFiles
+.clang-tidy
+.idea/*
+.idea/workspace.xml

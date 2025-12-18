@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 21/12/2024.
-//
+
 
 #ifndef SIGNAL_HPP
 #define SIGNAL_HPP

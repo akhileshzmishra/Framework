@@ -1,9 +1,11 @@
-#include <gtest/gtest.h>
-#include <Mytuple.h>
-#include <MyTuplePacker.h>
-#include <MyIntegerIndexer.h>
-#include <iostream>
 #include <MyAny.h>
+#include <MyIntegerIndexer.h>
+#include <MyTuplePacker.h>
+#include <Mytuple.h>
+#include <TrieMap.h>
+#include <gtest/gtest.h>
+
+#include <iostream>
 #include <string>
 
 using namespace datastructure;
@@ -44,4 +46,17 @@ TEST(DataStructureTest, AnyTestUnorderemap){
     std::cout << AnyCast<int>(anyMap["Rihanna"] )<< std::endl;
     std::cout << AnyCast<std::string>(anyMap["Akhilesh"]) << std::endl;
     //EXPECT_EQ (AnyCast<int> (mymap["Mishra"]), 20);
+}
+
+TEST (DataStructureTest, TrieMap_set_valid) {
+    TrieMap<char, std::string> trieMap;
+    trieMap.set ("Akhilesh", "akhilesh");
+    EXPECT_TRUE (trieMap.get ("Akhilesh").has_value ());
+    EXPECT_EQ (trieMap.get ("Akhilesh").value ().get (), std::string ("akhilesh"));
+}
+
+TEST (DataStructureTest, TrieMap_test_invalid) {
+    TrieMap<char, std::string> trieMap;
+    trieMap.set ("Akhilesh", "akhilesh");
+    EXPECT_FALSE (trieMap.get ("Akhilesh1").has_value ());
 }

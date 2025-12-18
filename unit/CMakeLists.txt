@@ -13,6 +13,7 @@ add_executable(
         SudokuSolverTest.cpp
         MyFunctionTest.cpp
         MyDatastructureTest.cpp
+        ZipViewTest.cpp
 )
 
 #find_package(benchmark REQUIRED)
