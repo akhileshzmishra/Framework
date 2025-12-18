@@ -1,7 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /Users/akhileshmishra/CLionProjects/AkhilProject/unit/sanitizers
-# Build directory: /Users/akhileshmishra/CLionProjects/AkhilProject/build/release/unit/sanitizers
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.
-subdirs("ubsan")
