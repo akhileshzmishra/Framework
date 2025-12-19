@@ -1,5 +1,3 @@
-
-
 #ifndef MYFUNCTION_H
 #define MYFUNCTION_H
 

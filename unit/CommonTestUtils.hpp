@@ -1,5 +1,3 @@
-
-
 #ifndef COMMONTESTUTILS_HPP
 #define COMMONTESTUTILS_HPP
 

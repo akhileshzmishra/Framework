@@ -1,5 +1,3 @@
-
-
 #ifndef MPMCQUEUE_HPP
 #define MPMCQUEUE_HPP
 
