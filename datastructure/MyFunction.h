@@ -48,12 +48,12 @@ struct StripSignature<R (ClassOrType::*) (A...) const & noexcept (NoExcept)> {
 
 enum class ManageStorageEnum { CreateStorage, CloneStorage, DeleteStorage, MoveStorage, Invalid };
 
-template <class Functor, int Size = 16>
+template <class Functor, int Size>
 class BaseFunctionManager {
     static constexpr size_t MAX_SIZE = sizeof (AnyData<Size>);
     static constexpr size_t MAX_ALIGN = alignof (AnyData<Size>);
 
-    static constexpr bool isLocal = (std::is_trivially_copy_assignable_v<Functor>) &&
+    static constexpr bool isLocal = (std::is_trivially_copyable_v<Functor>) &&
                                     (sizeof (Functor) <= MAX_SIZE) &&
                                     (alignof (Functor) <= MAX_ALIGN);
 
@@ -76,7 +76,10 @@ class BaseFunctionManager {
     }
 
     static void create (AnyData<Size>& destination, Functor&& source) {
-        DebugPrint::printLine ("Create storage function, islocal=", isLocal);
+        DebugPrint::printLine (
+            "Create storage function, islocal=", isLocal, ", size=", sizeof (Functor),
+            ", sizeof buffer=", sizeof (AnyData<Size>), ", align=", alignof (Functor),
+            ", copyable=", std::is_trivially_copyable_v<Functor>);
         if constexpr (isLocal) {
             new (destination.template asPtr<Functor> ()) Functor (std::forward<Functor> (source));
         } else {
@@ -90,6 +93,11 @@ class BaseFunctionManager {
         } else {
             return *source.template asPtr<Functor*> ();
         }
+    }
+
+    template <class ReturnType, class... Args>
+    static ReturnType invoke (AnyData<Size>& source, Args&&... args) {
+        return std::invoke (*getPointer (source), std::forward<Args> (args)...);
     }
 
    private:
@@ -125,45 +133,19 @@ class BaseFunctionManager {
     }
 };
 
-template <int Size, class Signature, class Functor>
-class FunctionManager;
-
-template <int Size, class ReturnType, class Functor, class... Args>
-class FunctionManager<Size, ReturnType (Args...), Functor>
-    : public BaseFunctionManager<Functor, Size> {
-
-   public:
-    typedef BaseFunctionManager<Functor, Size> Base;
-
-    static ReturnType invoke (AnyData<Size>& data, Args... args) {
-        return std::invoke (*Base::getPointer (data), std::forward<Args> (args)...);
-    }
-};
-
-template <int Size, class Class, class Member, class ReturnType, class... Args>
-class FunctionManager<Size, ReturnType (Args...), Member Class::*>
-    : public BaseFunctionManager<Member Class::*, Size> {
-    typedef Member Class::* Functor;
-
-   public:
-    typedef BaseFunctionManager<Functor, Size> Base;
-    static ReturnType invoke (AnyData<Size>& data, Args... args) {
-        return std::invoke (*Base::getPointer (data), std::forward<Args> (args)...);
-    }
-};
 
 template <class Functor>
 class MyFunction;
 
 template <class ReturnType, class... Args>
 class MyFunction<ReturnType (Args...)> {
-    static constexpr const int DataSize = 32;
+    static constexpr const int DataSize = 256;
     AnyData<DataSize> d_data{};
     using InvokerType = ReturnType (*) (AnyData<DataSize>&, Args...);
     using ManagerType = void (*) (AnyData<DataSize>&, AnyData<DataSize>&, ManageStorageEnum);
 
     template <typename Functor>
-    using Handler = FunctionManager<DataSize, ReturnType (Args...), Functor>;
+    using Handler = BaseFunctionManager<Functor, DataSize>;
 
     template <typename F>
     using Stored = std::decay_t<F>;
@@ -176,7 +158,7 @@ class MyFunction<ReturnType (Args...)> {
     explicit MyFunction (Functor&& f) {
         using F = Stored<Functor>;
         Handler<F>::create (d_data, std::forward<F> (f));
-        d_invoker = Handler<F>::invoke;
+        d_invoker = Handler<F>::template invoke<ReturnType, Args...>;
         d_manager = Handler<F>::manageStorage;
         DebugPrint::printLine ("Constructor");
     }

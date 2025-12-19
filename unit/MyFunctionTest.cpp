@@ -39,10 +39,13 @@ TEST (MyFunctionTest, testMyFunction2) {
 }
 
 TEST (MyFunctionTest, testMyFunction3) {
-    std::vector<std::string> vec = {"abcd", "abcd", "abcd"};
-    MyFunction mf ([vec] () {
-        for (const auto& v : vec) std::cout << v << std::endl;
-    });
+    struct DataVector {
+        int eleents[45] = {
+            53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+        };
+    };
+    DataVector vec;
+    MyFunction mf ([vec] () { std::cout << vec.eleents[0] << std::endl; });
     mf ();
 }
 
@@ -52,4 +55,15 @@ TEST (MyFunctionTest, testMyFunction4) {
     DebugPrint::printLine ("---------------------");
     mf ();
     DebugPrint::printLine ("---------------------");
+}
+
+TEST (MyFunctionTest, testClassStaticFunction) {
+    class AClass {
+       public:
+        static void method () { std::cout << "method" << std::endl; }
+    };
+
+    MyFunction mf (AClass::method);
+    DebugPrint::printLine ("---------------------");
+    mf ();
 }
