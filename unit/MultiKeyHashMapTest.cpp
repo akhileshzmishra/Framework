@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 27/01/2025.
-//
+
 #include <gtest/gtest.h>
 #include <MultiKeyHashMap.h>
 #include <iostream>

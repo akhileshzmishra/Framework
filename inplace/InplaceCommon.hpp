@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 20/12/2024.
-//
+
 
 #ifndef INPLACECOMMON_HPP
 #define INPLACECOMMON_HPP

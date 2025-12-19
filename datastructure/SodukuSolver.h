@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 29/01/2025.
-//
+
 
 #ifndef SODUKUSOLVER_H
 #define SODUKUSOLVER_H

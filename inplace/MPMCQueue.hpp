@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 23/12/2024.
-//
+
 
 #ifndef MPMCQUEUE_HPP
 #define MPMCQUEUE_HPP

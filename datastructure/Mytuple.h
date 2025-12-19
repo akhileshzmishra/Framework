@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 03/04/2025.
-//
+
 
 #ifndef MYTUPLE_H
 #define MYTUPLE_H

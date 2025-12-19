@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 25/12/2024.
-//
+
 
 #ifndef SPINLOCK_HPPdd
 #define SPINLOCK_HPPdd

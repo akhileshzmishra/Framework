@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 28/06/2025.
-//
+
 
 #ifndef TRIEMAP_H
 #define TRIEMAP_H

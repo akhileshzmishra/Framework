@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 09/01/2025.
-//
+
 
 #ifndef FIXEDLIST_H
 #define FIXEDLIST_H

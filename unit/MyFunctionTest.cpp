@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 08/02/2025.
-//
+
 
 #include <MyFunction.h>
 #include <gtest/gtest.h>

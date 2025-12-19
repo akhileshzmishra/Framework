@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 03/04/2025.
-//
+
 
 #ifndef MYINTEGERINDEXER_H
 #define MYINTEGERINDEXER_H

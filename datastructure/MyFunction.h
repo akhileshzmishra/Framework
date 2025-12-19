@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 06/02/2025.
-//
+
 
 #ifndef MYFUNCTION_H
 #define MYFUNCTION_H

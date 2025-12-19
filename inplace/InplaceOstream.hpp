@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 07/01/2025.
-//
+
 
 #ifndef INPLACEOSTREAM_HPP
 #define INPLACEOSTREAM_HPP

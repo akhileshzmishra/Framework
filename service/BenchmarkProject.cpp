@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 15/12/2024.
-//
+
 
 #include <TestHeader.hpp>
 #include <benchmark/benchmark.h>

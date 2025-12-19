@@ -1,6 +1,4 @@
-//
-// Created by Akhilesh Mishra on 13/02/2025.
-//
+
 
 #ifndef SYNCHRONIZEDSTRUCTURE_H
 #define SYNCHRONIZEDSTRUCTURE_H
