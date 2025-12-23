@@ -67,3 +67,11 @@ TEST (MyFunctionTest, testClassStaticFunction) {
     DebugPrint::printLine ("---------------------");
     mf ();
 }
+
+TEST (MyFunctionTest, testCopyFunctionWithLambda) {
+    TestData td;
+    MyFunction mf (td);
+    MyFunction mf2 = mf;
+    mf ();
+    mf2 ();
+}

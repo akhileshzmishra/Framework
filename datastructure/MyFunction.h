@@ -50,15 +50,16 @@ enum class ManageStorageEnum { CreateStorage, CloneStorage, DeleteStorage, MoveS
 
 template <class Functor, int Size>
 class BaseFunctionManager {
-    static constexpr size_t MAX_SIZE = sizeof (AnyData<Size>);
-    static constexpr size_t MAX_ALIGN = alignof (AnyData<Size>);
+    static constexpr size_t MAX_SIZE = sizeof (SmallBufferOptimizationStorage<Size>);
+    static constexpr size_t MAX_ALIGN = alignof (SmallBufferOptimizationStorage<Size>);
 
     static constexpr bool isLocal = (std::is_trivially_copyable_v<Functor>) &&
                                     (sizeof (Functor) <= MAX_SIZE) &&
                                     (alignof (Functor) <= MAX_ALIGN);
 
    public:
-    static void manageStorage (AnyData<Size>& destination, AnyData<Size>& source,
+    static void manageStorage (SmallBufferOptimizationStorage<Size>& destination,
+                               SmallBufferOptimizationStorage<Size>& source,
                                ManageStorageEnum type) {
         switch (type) {
             case ManageStorageEnum::CloneStorage:
@@ -75,10 +76,11 @@ class BaseFunctionManager {
         }
     }
 
-    static void create (AnyData<Size>& destination, Functor&& source) {
+    static void create (SmallBufferOptimizationStorage<Size>& destination, Functor&& source) {
         DebugPrint::printLine (
             "Create storage function, islocal=", isLocal, ", size=", sizeof (Functor),
-            ", sizeof buffer=", sizeof (AnyData<Size>), ", align=", alignof (Functor),
+            ", sizeof buffer=", sizeof (SmallBufferOptimizationStorage<Size>),
+            ", align=", alignof (Functor),
             ", copyable=", std::is_trivially_copyable_v<Functor>);
         if constexpr (isLocal) {
             new (destination.template asPtr<Functor> ()) Functor (std::forward<Functor> (source));
@@ -87,21 +89,21 @@ class BaseFunctionManager {
         }
     }
 
-    static Functor* getPointer (AnyData<Size>& source) {
+    template <class ReturnType, class... Args>
+    static ReturnType invoke (SmallBufferOptimizationStorage<Size>& source, Args&&... args) {
+        return std::invoke (*getPointer (source), std::forward<Args> (args)...);
+    }
+
+   private:
+    static Functor* getPointer (SmallBufferOptimizationStorage<Size>& source) {
         if constexpr (isLocal) {
             return source.template asPtr<Functor> ();
         } else {
             return *source.template asPtr<Functor*> ();
         }
     }
-
-    template <class ReturnType, class... Args>
-    static ReturnType invoke (AnyData<Size>& source, Args&&... args) {
-        return std::invoke (*getPointer (source), std::forward<Args> (args)...);
-    }
-
-   private:
-    static void clone (AnyData<Size>& dest, AnyData<Size>& source) {
+    static void clone (SmallBufferOptimizationStorage<Size>& dest,
+                       const SmallBufferOptimizationStorage<Size>& source) {
         DebugPrint::printLine ("Clone storage function, islocal=", isLocal);
         if constexpr (isLocal) {
             new (dest.template asPtr<Functor> ()) Functor (*source.template asPtr<Functor> ());
@@ -110,7 +112,7 @@ class BaseFunctionManager {
         }
     }
 
-    static void move (AnyData<Size>& dest, AnyData<Size>& source) {
+    static void move (SmallBufferOptimizationStorage<Size>& dest, SmallBufferOptimizationStorage<Size>& source) {
         DebugPrint::printLine ("Move storage function, islocal=", isLocal);
         // Proper care must be taken to ensure that delete is not called on source in case of local
         // storage.
@@ -123,7 +125,7 @@ class BaseFunctionManager {
         }
     }
 
-    static void destroy (AnyData<Size>& dest) {
+    static void destroy (SmallBufferOptimizationStorage<Size>& dest) {
         DebugPrint::printLine ("Destroy storage function, islocal=", isLocal);
         if constexpr (isLocal) {
             dest.template asPtr<Functor> ()->~Functor ();
@@ -140,9 +142,11 @@ class MyFunction;
 template <class ReturnType, class... Args>
 class MyFunction<ReturnType (Args...)> {
     static constexpr const int DataSize = 256;
-    AnyData<DataSize> d_data{};
-    using InvokerType = ReturnType (*) (AnyData<DataSize>&, Args...);
-    using ManagerType = void (*) (AnyData<DataSize>&, AnyData<DataSize>&, ManageStorageEnum);
+    mutable SmallBufferOptimizationStorage<DataSize> d_data{};
+    using InvokerType = ReturnType (*) (SmallBufferOptimizationStorage<DataSize>&, Args...);
+    using ManagerType = void (*) (SmallBufferOptimizationStorage<DataSize>&,
+                                  SmallBufferOptimizationStorage<DataSize>&,
+                                  ManageStorageEnum);
 
     template <typename Functor>
     using Handler = BaseFunctionManager<Functor, DataSize>;
@@ -160,7 +164,7 @@ class MyFunction<ReturnType (Args...)> {
         Handler<F>::create (d_data, std::forward<F> (f));
         d_invoker = Handler<F>::template invoke<ReturnType, Args...>;
         d_manager = Handler<F>::manageStorage;
-        DebugPrint::printLine ("Constructor");
+        DebugPrint::printLine ("MyFunction()");
     }
 
     explicit MyFunction (nullptr_t) {}
@@ -175,7 +179,7 @@ class MyFunction<ReturnType (Args...)> {
     }
 
     ~MyFunction () {
-        DebugPrint::printLine ("Destructor");
+        DebugPrint::printLine ("~MyFunction()");
         if (d_manager) {
             DebugPrint::printLine ("Destroyed");
             std::invoke (d_manager, d_data, d_data, ManageStorageEnum::DeleteStorage);
@@ -183,34 +187,35 @@ class MyFunction<ReturnType (Args...)> {
     }
 
     MyFunction (const MyFunction& rhs) {
+        DebugPrint::printLine ("MyFunction (const MyFunction& rhs)");
         d_invoker = rhs.d_invoker;
         d_manager = rhs.d_manager;
         std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::CloneStorage);
-        DebugPrint::printLine ("Copy Constructor");
     }
 
     MyFunction (MyFunction&& rhs) noexcept {
+        DebugPrint::printLine ("MyFunction (MyFunction&& rhs) ");
         d_invoker = rhs.d_invoker;
         d_manager = rhs.d_manager;
 
         std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::MoveStorage);
         rhs.d_invoker = nullptr;
         rhs.d_manager = nullptr;
-        DebugPrint::printLine ("Move Constructor");
     }
 
     MyFunction& operator= (const MyFunction& rhs) {
+        DebugPrint::printLine ("MyFunction& operator= (const MyFunction& rhs) ");
         if (this != &rhs) {
             std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::DeleteStorage);
             d_invoker = rhs.d_invoker;
             d_manager = rhs.d_manager;
             std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::CloneStorage);
         }
-        DebugPrint::printLine ("Copy Assignment Operator");
         return *this;
     }
 
     MyFunction& operator= (MyFunction&& rhs) noexcept {
+        DebugPrint::printLine ("MyFunction& operator= (MyFunction&& rhs)");
         if (this != &rhs) {
             std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::DeleteStorage);
             d_invoker = rhs.d_invoker;
@@ -218,7 +223,6 @@ class MyFunction<ReturnType (Args...)> {
             rhs.d_invoker = nullptr;
             rhs.d_manager = nullptr;
             std::invoke (d_manager, d_data, rhs.d_data, ManageStorageEnum::MoveStorage);
-            DebugPrint::printLine ("Move Assignment Operator");
         }
         return *this;
     }

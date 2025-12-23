@@ -5,178 +5,200 @@
 
 namespace datastructure {
 
-class Any {
-    enum class ManagerEnum {
-        Clone,
-        Move,
-        Destroy
-    };
-    template <typename T>
-    class Handler {
-        using AnyData = AnyData<16>;
-        static const size_t MAX_ALIGN = alignof(T);
-        static const size_t MAX_SIZE = sizeof(AnyData);
-        using NativeType = std::remove_reference_t<T>;
+enum class ManagerEnum { Clone, Move, Destroy, GetPointer };
 
-        static constexpr bool isLocal =
-            (sizeof(T) <= MAX_SIZE) &&
-            (alignof(T) <= MAX_ALIGN) &&
-            std::is_trivially_copyable_v<T>;
-    public:
-        template <typename... Args>
-        static void create(AnyData* storage, Args&&... args) {
-            if constexpr (isLocal) {
-                new (storage) T(std::forward<Args>(args)...);
-            }
-            else {
-                *storage->asPtr<T*> () = new T(std::forward<Args>(args)...);
-            }
-        }
-
-        static void managerLocal(ManagerEnum me, AnyData* destination,  const AnyData* source, AnyData* storage) {
-            switch (me) {
-                case ManagerEnum::Clone:
-                    new (destination) T(*source->asPtr<T>());
-                break;
-                case ManagerEnum::Move:
-                    new (destination) T(*storage->asPtr<T>());
-                break;
-                case ManagerEnum::Destroy:
-                    destination->asPtr<T>()->~T();
-                break;
-                default:
-                    throw std::bad_cast();
-
-            }
-        }
-
-        static void managerNonLocal(ManagerEnum me, AnyData* destination,  const AnyData* source, AnyData* storage) {
-            switch (me) {
-                case ManagerEnum::Clone:
-                    *destination->asPtr<T*>() = new T(**source->asPtr<T*>());
-                break;
-                case ManagerEnum::Move:
-                    *destination->asPtr<T*>() = new T(**storage->asPtr<T*>());
-                break;
-                case ManagerEnum::Destroy:
-                    delete *destination->asPtr<T*> ();
-                break;
-                default:
-                    throw std::bad_cast();
-
-            }
-        }
-
-       static void manager(ManagerEnum me, AnyData* destination,  const AnyData* source, AnyData* storage){
-           if constexpr (isLocal) {
-               managerLocal (me, destination, source, storage);
-           }
-           else {
-               managerNonLocal (me, destination, source, storage);
-           }
-       }
-
-        static consteval bool local() {
-            return isLocal;
-        }
-    };
-
-    template <typename T>
+template <size_t Size, typename T>
+class Handler {
+    using AnyData = SmallBufferOptimizationStorage<Size>;
+    static const size_t MAX_ALIGN = alignof (T);
+    static const size_t MAX_SIZE = sizeof (SmallBufferOptimizationStorage<Size>);
     using NativeType = std::remove_reference_t<T>;
 
-    AnyData<16> d_data{};
-    void (*d_manager) (ManagerEnum, AnyData<16>*, const AnyData<16>*, AnyData<16>*) = nullptr;
-    bool d_local = false;
-public:
-    Any() = default;
+    static constexpr bool isLocal =
+        (sizeof (T) <= MAX_SIZE) && (alignof (T) <= MAX_ALIGN) && std::is_trivially_copyable_v<T>;
 
-    ~Any() {
+   public:
+    template <typename... Args>
+    static void create (SmallBufferOptimizationStorage<Size>& storage, Args&&... args) {
+        if constexpr (isLocal) {
+            new (storage.template asPtr<T> ()) T (std::forward<Args> (args)...);
+        } else {
+            *storage.template asPtr<T*> () = new T (std::forward<Args> (args)...);
+        }
+    }
+
+    static void* manager (ManagerEnum me, SmallBufferOptimizationStorage<Size>& destination,
+                          SmallBufferOptimizationStorage<Size>& source) {
+        void* returnValue = nullptr;
+        switch (me) {
+            case ManagerEnum::Clone:
+                clone (destination, source);
+                break;
+            case ManagerEnum::Move:
+                move (destination, source);
+                break;
+            case ManagerEnum::Destroy:
+                destroy (destination);
+                break;
+            case ManagerEnum::GetPointer:
+                returnValue = getPointer (destination);
+                break;
+            default:
+                throw std::bad_cast ();
+        }
+        return returnValue;
+    }
+
+   private:
+    static void* getPointer (SmallBufferOptimizationStorage<Size>& storage) {
+        if constexpr (isLocal) {
+            return static_cast<void*> (storage.template asPtr<T> ());
+        }
+        return static_cast<void*> (*storage.template asPtr<T*> ());
+    }
+
+    static void destroy (SmallBufferOptimizationStorage<Size>& storage) {
+        if constexpr (isLocal) {
+            storage.template asPtr<T> ()->~T ();
+        } else {
+            delete *storage.template asPtr<T*> ();
+        }
+    }
+
+    static void clone (SmallBufferOptimizationStorage<Size>& destination,
+                       SmallBufferOptimizationStorage<Size>& source) {
+        if constexpr (isLocal) {
+            new (destination.template asPtr<T> ()) T (*source.template asPtr<T> ());
+        } else {
+            *destination.template asPtr<T*> () = new T (**source.template asPtr<T*> ());
+        }
+    }
+
+    static void move (SmallBufferOptimizationStorage<Size>& destination,
+                      SmallBufferOptimizationStorage<Size>& source) {
+        if constexpr (isLocal) {
+            new (destination.template asPtr<T> ()) T (std::move (*source.template asPtr<T> ()));
+        } else {
+            *destination.template asPtr<T*> () = *source.template asPtr<T*> ();
+            *source.template asPtr<T*> () = nullptr;
+        }
+    }
+};
+
+template <size_t Size = 16>
+class TypeFreeData {
+    mutable SmallBufferOptimizationStorage<Size> d_data{};
+    using ManagerType = void* (*)(ManagerEnum, SmallBufferOptimizationStorage<Size>&,
+                                  SmallBufferOptimizationStorage<Size>&);
+    ManagerType d_manager = nullptr;
+
+   public:
+    TypeFreeData () = default;
+
+    ~TypeFreeData () {
         if (d_manager) {
-            d_manager(ManagerEnum::Destroy, &d_data, nullptr, nullptr);
+            d_manager (ManagerEnum::Destroy, d_data, d_data);
         }
     }
 
     template <typename T>
-        requires (!std::is_same_v<std::remove_reference_t<std::remove_cv_t<T>>, AnyData<16>>)
-    explicit Any (T&& rhs) {
-        Handler<NativeType<T>>::create(&d_data, std::forward<T>(rhs));
-        d_manager = &Handler<NativeType<T>>::manager;
-        d_local = Handler<NativeType<T>>::local();
+        requires (!std::is_same_v<T, TypeFreeData>)
+    explicit TypeFreeData (T&& value) {
+        using Type = typename std::decay<T>::type;
+        using Handler = Handler<Size, Type>;
+        d_manager = Handler::manager;
+        Handler::create (d_data, value);
     }
 
-    Any (Any&& rhs)  noexcept {
+    TypeFreeData (TypeFreeData&& rhs) noexcept {
         d_manager = rhs.d_manager;
-        d_local = rhs.d_local;
-        d_manager(ManagerEnum::Move, &d_data, nullptr, &rhs.d_data);
+        if (rhs.d_manager) {
+            rhs.d_manager = nullptr;
+            if (d_manager) {
+                std::invoke (d_manager, ManagerEnum::Move, d_data, rhs.d_data);
+            }
+        }
     }
 
-    Any (const Any& rhs) {
+    TypeFreeData (const TypeFreeData& rhs) {
         d_manager = rhs.d_manager;
-        d_local = rhs.d_local;
-        d_manager(ManagerEnum::Clone, &d_data, &rhs.d_data, nullptr);
+        if (d_manager) {
+            std::invoke (d_manager, ManagerEnum::Clone, d_data, rhs.d_data);
+        }
     }
 
-
-    Any& operator = (const Any& rhs) {
+    TypeFreeData& operator= (const TypeFreeData& rhs) {
         if (&rhs != this) {
             if (d_manager) {
-                d_manager(ManagerEnum::Destroy, &d_data, nullptr, nullptr);
+                std::invoke (d_manager, ManagerEnum::Destroy, d_data, rhs.d_data);
             }
             d_manager = rhs.d_manager;
-            d_local = rhs.d_local;
-            d_manager(ManagerEnum::Clone, &d_data, &rhs.d_data, nullptr);
+            if (d_manager) {
+                std::invoke (d_manager, ManagerEnum::Clone, d_data, rhs.d_data);
+            }
         }
         return *this;
     }
 
-    Any& operator = (Any&& rhs)  noexcept {
+    TypeFreeData& operator= (TypeFreeData&& rhs) noexcept {
         if (&rhs != this) {
             if (d_manager) {
-                d_manager(ManagerEnum::Destroy, &d_data, nullptr, nullptr);
+                std::invoke (d_manager, ManagerEnum::Destroy, d_data, rhs.d_data);
             }
             d_manager = rhs.d_manager;
-            d_local = rhs.d_local;
-            d_manager(ManagerEnum::Move, &d_data, nullptr, &rhs.d_data);
+            std::invoke (d_manager, ManagerEnum::Move, d_data, rhs.d_data);
+            rhs.d_manager = nullptr;
         }
         return *this;
     }
 
     template <typename T>
-    Any& operator = (T&& rhs) {
+        requires (!std::is_same_v<T, TypeFreeData>)
+    TypeFreeData& operator= (T&& value) {
         if (d_manager) {
-            d_manager(ManagerEnum::Destroy, &d_data, nullptr, nullptr);
+            std::invoke (d_manager, ManagerEnum::Destroy, d_data, d_data);
         }
-        Handler<NativeType<T>>::create(&d_data, std::forward<T>(rhs));
-        d_local = Handler<NativeType<T>>::local();
-        d_manager = &Handler<NativeType<T>>::manager;
+        using Type = typename std::decay<T>::type;
+        using Handler = Handler<Size, Type>;
+        d_manager = Handler::manager;
+        Handler::create (d_data, value);
         return *this;
     }
 
-    friend bool operator == (const Any& lhs, const Any& rhs) {
+    friend bool operator== (const TypeFreeData& lhs, const TypeFreeData& rhs) {
         return lhs.d_manager == rhs.d_manager;
     }
 
     template <typename T>
-    friend T& AnyCast(Any& any) {
-        if (any.d_local) {
-            return *any.d_data.asPtr<T> ();
+    friend T& AnyCast (TypeFreeData& any) {
+        if (!any.d_manager) {
+            throw std::bad_cast ();
         }
-        return **any.d_data.asPtr<T*>();
+        auto managerOfTType = Handler<Size, std::decay_t<T>>::manager;
+        if (managerOfTType != any.d_manager) {
+            throw std::bad_cast ();
+        }
+        return *static_cast<T*> (
+            std::invoke (any.d_manager, ManagerEnum::GetPointer, any.d_data, any.d_data));
     }
 
     template <typename T>
-    friend const T& AnyCast(const Any& any) {
-        if (any.d_local) {
-            return *any.d_data.asPtr<T> ();
+    friend const T& AnyCast (const TypeFreeData& any) {
+        if (!any.d_manager) {
+            throw std::bad_cast ();
         }
-        return **any.d_data.asPtr<T*>();
+        auto managerOfTType = Handler<Size, std::decay_t<T>>::manager;
+        if (managerOfTType != any.d_manager) {
+            throw std::bad_cast ();
+        }
+        return *static_cast<T*> (
+            std::invoke (any.d_manager, ManagerEnum::GetPointer, any.d_data, any.d_data));
     }
-
 };
 
+using Any = TypeFreeData<>;
+using Any32 = TypeFreeData<32>;
 
-
-
-}
+}  // namespace datastructure
 
 #endif //MYANY_H

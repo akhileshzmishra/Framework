@@ -43,7 +43,7 @@ union SizedPointerStorage {
 };
 
 template <int Size = 16>
-union AnyData {
+union SmallBufferOptimizationStorage {
 
     alignas (std::max_align_t) char bytes[sizeof (SizedPointerStorage<Size>)];
 
