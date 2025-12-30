@@ -28,16 +28,3 @@ TEST(DataStructureTest, MyTuple2) {
     EXPECT_NE (xtple.get<0>(), refString);
     EXPECT_EQ (xtple.get<0>(), name);
 }
-
-TEST (DataStructureTest, TrieMap_set_valid) {
-    TrieMap<char, std::string> trieMap;
-    trieMap.set ("Akhilesh", "akhilesh");
-    EXPECT_TRUE (trieMap.get ("Akhilesh").has_value ());
-    EXPECT_EQ (trieMap.get ("Akhilesh").value ().get (), std::string ("akhilesh"));
-}
-
-TEST (DataStructureTest, TrieMap_test_invalid) {
-    TrieMap<char, std::string> trieMap;
-    trieMap.set ("Akhilesh", "akhilesh");
-    EXPECT_FALSE (trieMap.get ("Akhilesh1").has_value ());
-}

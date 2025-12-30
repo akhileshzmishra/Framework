@@ -80,8 +80,7 @@ class BaseFunctionManager {
         DebugPrint::printLine (
             "Create storage function, islocal=", isLocal, ", size=", sizeof (Functor),
             ", sizeof buffer=", sizeof (SmallBufferOptimizationStorage<Size>),
-            ", align=", alignof (Functor),
-            ", copyable=", std::is_trivially_copyable_v<Functor>);
+            ", align=", alignof (Functor), ", copyable=", std::is_trivially_copyable_v<Functor>);
         if constexpr (isLocal) {
             new (destination.template asPtr<Functor> ()) Functor (std::forward<Functor> (source));
         } else {
@@ -112,7 +111,8 @@ class BaseFunctionManager {
         }
     }
 
-    static void move (SmallBufferOptimizationStorage<Size>& dest, SmallBufferOptimizationStorage<Size>& source) {
+    static void move (SmallBufferOptimizationStorage<Size>& dest,
+                      SmallBufferOptimizationStorage<Size>& source) {
         DebugPrint::printLine ("Move storage function, islocal=", isLocal);
         // Proper care must be taken to ensure that delete is not called on source in case of local
         // storage.
@@ -145,8 +145,7 @@ class MyFunction<ReturnType (Args...)> {
     mutable SmallBufferOptimizationStorage<DataSize> d_data{};
     using InvokerType = ReturnType (*) (SmallBufferOptimizationStorage<DataSize>&, Args...);
     using ManagerType = void (*) (SmallBufferOptimizationStorage<DataSize>&,
-                                  SmallBufferOptimizationStorage<DataSize>&,
-                                  ManageStorageEnum);
+                                  SmallBufferOptimizationStorage<DataSize>&, ManageStorageEnum);
 
     template <typename Functor>
     using Handler = BaseFunctionManager<Functor, DataSize>;

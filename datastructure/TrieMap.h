@@ -44,17 +44,22 @@ class TrieNode final {
     explicit TrieNode (const TrieNode&) = delete;
 
     void set (const Key& key, const ChildPtr value) { _children[key] = value; }
+
     ChildPtr get (const Key& key) const {
         assert (_children.find (key) != _children.end ());
         const auto find = _children.find (key);
         return find->second;
     }
+
     [[nodiscard]] bool isLeaf () const { return _leafValue.has_value (); }
+
     void setLeaf (const Value& v) { _leafValue = v; }
+
     Value& leafValue () {
         assert (_leafValue.has_value ());
         return _leafValue.value ();
     }
+
     bool contains (const Key& key) const { return _children.find (key) != _children.end (); }
 };
 
@@ -78,9 +83,10 @@ class TrieMap final {
    public:
     TrieMap () = default;
 
-    template <std::ranges::input_range Range>
-        requires std::convertible_to<std::ranges::range_value_t<Range>, Key>
-    void set (Range&& keys, Value&& value) {
+    template <std::ranges::input_range Range, class V>
+        requires (std::convertible_to<std::ranges::range_value_t<Range>, Key> &&
+                  std::convertible_to<V, Value>)
+    void set (Range&& keys, V&& value) {
         auto node = d_head;
         for (const auto& key : keys) {
             assert (node != nullptr);

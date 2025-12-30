@@ -15,6 +15,7 @@ add_executable(
         MyDatastructureTest.cpp
         ZipViewTest.cpp
         MyAnyTest.cpp
+        MyTrieMapTest.cpp
 )
 
 #find_package(benchmark REQUIRED)

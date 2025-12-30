@@ -9,8 +9,7 @@ enum class ManagerEnum { Clone, Move, Destroy, GetPointer };
 
 template <size_t Size, typename T>
 class Handler {
-    using AnyData = SmallBufferOptimizationStorage<Size>;
-    static const size_t MAX_ALIGN = alignof (T);
+    static const size_t MAX_ALIGN = alignof (SmallBufferOptimizationStorage<Size>);
     static const size_t MAX_SIZE = sizeof (SmallBufferOptimizationStorage<Size>);
     using NativeType = std::remove_reference_t<T>;
 
